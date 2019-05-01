@@ -11,5 +11,6 @@ of the columns will contain any metric that one ones to count or text informatio
   * Tokenization should allow for Dynamic Keyword Insertation and Emoji support.
 * The output file should be an .xlsx workbook, containing sheets with selected ngram range (1-gram, 2-gram, ..., n-gram)
 and a sheet with pre-processed data, so one can debug weird occurences. Especially helpful with Ad ID.
+* Add an option to run through a folder full of .csv files.
 * Utilize multithreading to speed things up.
 * In later stages, might be worth expanding it to automatically download data from Google Ads and Facebook Ads.
