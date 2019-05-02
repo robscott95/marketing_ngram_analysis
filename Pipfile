@@ -5,12 +5,14 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+flake8 = "*"
+black = "*"
 
 [packages]
 nltk = "*"
 pandas = "*"
 argparse = "*"
-re = "*"
+black = "*"
 
 [requires]
 python_version = "3.7"
