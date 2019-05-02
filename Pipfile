@@ -10,6 +10,7 @@ pylint = "*"
 nltk = "*"
 pandas = "*"
 argparse = "*"
+re = "*"
 
 [requires]
 python_version = "3.7"
