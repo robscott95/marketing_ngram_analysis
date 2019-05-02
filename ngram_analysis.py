@@ -39,9 +39,20 @@ def clean_input_data(input_data_df):
     Raises:
         - TypeError: When the first column of the DataFrame isn't an object.
     '''
+    
+    def delete_spaces_in_substring(s, pat=r'{.*?}|\d[\d ]*\d'):
+        '''
+        Helper inner function for removing spaces in a substring of a string
 
-    def delete_spaces_in_substring(s, pat=r'{.*?}'):
-        '''Helper function for removing spaces in a substring of a string'''
+        Notes: 
+            - Default pattern: r'{.*?}|\d[\d ]*\d' works by matching anything
+                that's in curly braces and anything 
+                that starts and ends with a digit with spaces in between.
+
+        Example:
+            - test stuff {=venueprice venue}: test stuff {=venuepricevenue}
+            - 1 800 800 and other: 1800800 and other
+        '''
         matches = re.findall(pat, s)
         
         if matches:
@@ -50,7 +61,11 @@ def clean_input_data(input_data_df):
                 s = re.sub(match, match_replacement, s)
 
         return s
-    
+
+    # --------------------
+    # Function's Main Part
+    # --------------------
+
     if not input_data_df.iloc[0].dtype == 'O':
         raise TypeError(f"The first column of the input file is not text based.")
 
@@ -67,11 +82,7 @@ def clean_input_data(input_data_df):
 
     input_data_df['cleaned_text'] = input_data_df['cleaned_text'].str.lower()
     input_data_df['cleaned_text'].replace({f"[{stop_characters}]": ' '}, inplace=True, regex=True)
-   
-    # Fix with numerical data - now it's all togheter instead of random 3 digit ngrams.
-    input_data_df['cleaned_text'].replace({r'(\d)\s(\d)': r'\1\2'}, inplace=True, regex=True) 
-    input_data_df['cleaned_text'] = input_data_df['cleaned_text'].apply(lambda s: delete_spaces_in_substring(s) 
-                                                                        if '{' in s else s)
+    input_data_df['cleaned_text'] = input_data_df['cleaned_text'].apply(lambda s: delete_spaces_in_substring(s))
     input_data_df['cleaned_text'].replace({r'\s+': ' '}, inplace=True, regex=True) 
 
     return input_data_df
@@ -89,6 +100,7 @@ def execute_ngram_analysis(input_file):
         return None
     
     input_data_df = clean_input_data(input_data_df)
+    #input_data_with_ngrams_df = create_ngrams()
     
 
     pass
