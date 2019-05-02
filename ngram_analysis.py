@@ -2,9 +2,6 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Clear input text out of stop signs, with respect of dynamic keyword insertation (DKI) and emoji support.
-** DKI in Google will require an additionall step, where anything between curly braces {} should have their 
-   spaces removed.
 * Range n-gram splitting
 * Create a post-processing DataFrame containing the original dataframe with new columns containing ngrams
 * Create n-gram based DataFrames which sums everything up with respect towards the string based columns.
@@ -40,9 +37,9 @@ def clean_input_data(input_data_df):
         - TypeError: When the first column of the DataFrame isn't an object.
     '''
     
-    def delete_spaces_in_substring(s, pat=r'{.*?}|\d[\d ]*\d'):
+    def delete_spaces_in_substrings(s, pat=r'{.*?}|\d[\d ]*\d'):
         '''
-        Helper inner function for removing spaces in a substring of a string
+        Helper inner function for removing spaces in a substring of a given string.
 
         Notes: 
             - Default pattern: r'{.*?}|\d[\d ]*\d' works by matching anything
@@ -82,7 +79,7 @@ def clean_input_data(input_data_df):
 
     input_data_df['cleaned_text'] = input_data_df['cleaned_text'].str.lower()
     input_data_df['cleaned_text'].replace({f"[{stop_characters}]": ' '}, inplace=True, regex=True)
-    input_data_df['cleaned_text'] = input_data_df['cleaned_text'].apply(lambda s: delete_spaces_in_substring(s))
+    input_data_df['cleaned_text'] = input_data_df['cleaned_text'].apply(lambda s: delete_spaces_in_substrings(s))
     input_data_df['cleaned_text'].replace({r'\s+': ' '}, inplace=True, regex=True) 
 
     return input_data_df
