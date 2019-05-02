@@ -62,9 +62,9 @@ def clean_input_data(input_data_df):
 
         return s
 
-    # --------------------
-    # Function's Main Part
-    # --------------------
+    # -----------------------
+    # Parent's Function Logic
+    # -----------------------
 
     if not input_data_df.iloc[0].dtype == 'O':
         raise TypeError(f"The first column of the input file is not text based.")
@@ -77,7 +77,7 @@ def clean_input_data(input_data_df):
     # the headline/description in AdWords.
     # We just want to remove the most popular punctuation to remove redundant
     # duplicate ngrams while also want to have an insight into how less
-    # common characters influence the analysis.
+    # common characters influence the performance.
     stop_characters = ".,:;?!()\\n\""
 
     input_data_df['cleaned_text'] = input_data_df['cleaned_text'].str.lower()
