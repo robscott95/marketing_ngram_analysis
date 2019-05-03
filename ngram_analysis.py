@@ -45,12 +45,8 @@ def clean_input_data(input_data_df):
     def delete_spaces_in_substrings(s, pat=r"{.*?}|\d[\d ]*\d"):
         """
         Helper inner function for removing spaces in a substring of a
-        given string.
-
-        Notes:
-            - Default pattern: r'{.*?}|\d[\d ]*\d' works by matching
-                anything that's in curly braces and anything that
-                starts and ends with a digit with spaces in between.
+        given string. Substrings are determined by the pat argument,
+        which is a regex pattern.
 
         Example:
             - test stuff {=venueprice venue}: test stuff {=venuepricevenue}

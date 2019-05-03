@@ -36,7 +36,7 @@ class CleanInputDataTest(unittest.TestCase):
                 "description": [
                     "Stress Free Planning For Your Big Day! Customized & All Inclusive Packages. |  no_description2",
                     "{=VenuePrice.Venue} Venue Packages Starting At {=VenuePrice.Start_price} Per Person.\nLearn More!",
-                    "{KeyWord:Exceptional Services}. |  Views of Vegas Strip Skyline & Sunrise Mountain Range!",
+                    "{KeyWord:Exceptional Services}. $90,000 |  Views of Vegas Strip Skyline & Sunrise Mountain Range!",
                     "Tie The Knot At One Of The Best Weddings'",
                 ]
             }
@@ -48,7 +48,7 @@ class CleanInputDataTest(unittest.TestCase):
             [
                 "stress free planning for your big day customized & all inclusive packages | no_description2",
                 "{=venuepricevenue} venue packages starting at {=venuepricestart_price} per person learn more ",
-                "{keywordexceptionalservices} | views of vegas strip skyline & sunrise mountain range ",
+                "{keywordexceptionalservices} $90000 | views of vegas strip skyline & sunrise mountain range ",
                 "tie the knot at one of the best weddings'",
             ],
             name="cleaned_text",
