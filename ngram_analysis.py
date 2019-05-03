@@ -23,8 +23,7 @@ pd.options.mode.chained_assignment = None
 
 
 def clean_input_data(input_data_df):
-    """
-    Helper function for cleaning the main text column (default: first one).
+    """Helper function for cleaning the main text column (default: first one).
 
     Deletes stop characters and in the event of Dynamic Keyword Insertations
     removes spaces between the words inside of curly braces or spaces between
@@ -43,8 +42,7 @@ def clean_input_data(input_data_df):
     """
 
     def delete_spaces_in_substrings(s, pat=r"{.*?}|\d[\d ]*\d"):
-        """
-        Helper inner function for removing spaces in a substring of a
+        """Helper inner function for removing spaces in a substring of a
         given string. Substrings are determined by the pat argument,
         which is a regex pattern.
 
@@ -96,8 +94,7 @@ def clean_input_data(input_data_df):
 
 
 def create_ngrams(input_data_cleaned_df, start=1, end=4):
-    '''
-    Helper function for creating n-grams.
+    """Helper function for creating n-grams.
     n is range between start and end (inclusive).
 
     Examples:
@@ -109,13 +106,13 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
         df["2-gram"]: {"jack and", "and jill"}
         df["3-gram"]: {"jack and jill"}
         df["4-gram"]: set()
-    '''
+    """
 
     for n in range(start, end + 1):
         n_gram = f"{n}-gram"
-        input_data_cleaned_df[n_gram] = input_data_cleaned_df['cleaned_text'].apply(
+        input_data_cleaned_df[n_gram] = input_data_cleaned_df["cleaned_text"].apply(
             # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
-            lambda s: set(' '.join(gram) for gram in set(nltk.ngrams(s.split(), n)))
+            lambda s: set(" ".join(gram) for gram in set(nltk.ngrams(s.split(), n)))
         )
 
     return input_data_cleaned_df
@@ -124,6 +121,7 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 ###################
 # MAIN EXECUTABLE #
 ###################
+
 
 def execute_ngram_analysis(input_file):
 
@@ -136,7 +134,6 @@ def execute_ngram_analysis(input_file):
     input_data_cleaned_df = clean_input_data(input_data_df)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
-
 
     pass
 
