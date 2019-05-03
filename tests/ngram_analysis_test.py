@@ -92,5 +92,122 @@ class CleanInputDataTest(unittest.TestCase):
         pandas.util.testing.assert_series_equal(test_series, assert_series)
 
 
+class CreateNgramsTest(unittest.TestCase):
+    def test_return_target_pattern(self):
+        test_df = pd.DataFrame(
+            {
+                "cleaned_text": [
+                    "{keywordexceptionalservices} $90000 | views of vegas skyline & sunrise ",
+                    "modern money management",
+                    "lost your card freeze it in seconds to keep it safe ❄️",
+                ]
+            }
+        )
+        assert_df = test_df
+        assert_df["1-gram"] = [
+            {
+                "{keywordexceptionalservices}",
+                "$90000",
+                "|",
+                "views",
+                "of",
+                "vegas",
+                "skyline",
+                "&",
+                "sunrise",
+            },
+            {"management", "money", "modern"},
+            {
+                "it",
+                "card",
+                "seconds",
+                "❄️",
+                "freeze",
+                "lost",
+                "your",
+                "to",
+                "keep",
+                "safe",
+                "in",
+            },
+        ]
+        assert_df["2-gram"] = [
+            {
+                "{keywordexceptionalservices} $90000",
+                "$90000 |",
+                "| views",
+                "views of",
+                "of vegas",
+                "vegas skyline",
+                "skyline &",
+                "& sunrise",
+            },
+            {"modern money", "money management"},
+            {
+                "in seconds",
+                "safe ❄️",
+                "to keep",
+                "it in",
+                "card freeze",
+                "lost your",
+                "it safe",
+                "freeze it",
+                "your card",
+                "keep it",
+                "seconds to",
+            },
+        ]
+        assert_df["3-gram"] = [
+            {
+                "{keywordexceptionalservices} $90000 |",
+                "$90000 | views",
+                "| views of",
+                "views of vegas",
+                "of vegas skyline",
+                "vegas skyline &",
+                "skyline & sunrise",
+            },
+            {"modern money management"},
+            {
+                "freeze it in",
+                "your card freeze",
+                "in seconds to",
+                "card freeze it",
+                "seconds to keep",
+                "lost your card",
+                "keep it safe",
+                "it safe ❄️",
+                "to keep it",
+                "it in seconds",
+            },
+        ]
+        assert_df["4-gram"] = [
+            {
+                "{keywordexceptionalservices} $90000 | views",
+                "$90000 | views of",
+                "| views of vegas",
+                "views of vegas skyline",
+                "of vegas skyline &",
+                "vegas skyline & sunrise",
+            },
+            set(),
+            {
+                "lost your card freeze",
+                "in seconds to keep",
+                "seconds to keep it",
+                "freeze it in seconds",
+                "to keep it safe",
+                "your card freeze it",
+                "card freeze it in",
+                "it in seconds to",
+                "keep it safe ❄️",
+            },
+        ]
+
+        return_df = ngram_analysis.create_ngrams(test_df, start=1, end=4)
+
+        pandas.util.testing.assert_frame_equal(test_df, return_df)
+
+
 if __name__ == "__main__":
     unittest.main()
