@@ -65,7 +65,7 @@ def clean_input_data(input_data_df):
     # Parent's Function Logic
     # -----------------------
 
-    if not input_data_df.iloc[0].dtype == "O":
+    if not input_data_df.iloc[:, 0].dtype == "O":
         raise TypeError(f"The first column of the input file is not text based.")
 
     input_data_df["cleaned_text"] = input_data_df.iloc[:, 0]
@@ -93,6 +93,16 @@ def clean_input_data(input_data_df):
     return input_data_df
 
 
+def create_ngrams(input_data_cleaned_df, start=1, end=4):
+
+    # for n in range(start, end + 1):
+    #     input_data_cleaned_df = input_data_cleaned_df.assign(
+    #         f"{n}-gram" = input_data_cleaned_df[]
+    #         )
+
+    return None
+
+
 ###################
 # MAIN EXECUTABLE #
 ###################
@@ -105,8 +115,8 @@ def execute_ngram_analysis(input_file):
         print(f"Reading {input_file} has caused an error:\n{e}")
         return None
 
-    input_data_df = clean_input_data(input_data_df)
-    # input_data_with_ngrams_df = create_ngrams()
+    input_data_cleaned_df = clean_input_data(input_data_df)
+    #input_data_with_ngrams_df = create_ngrams()
 
     pass
 

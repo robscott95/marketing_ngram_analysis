@@ -10,7 +10,6 @@ import pandas.util.testing
 
 class CleanInputDataTest(unittest.TestCase):
     def test_digits_after_cleaning_being_togheter(self):
-
         test_df = pd.DataFrame({"description": ["Number is 1 800 800", "$200,000.45"]})
         result_df = ngram_analysis.clean_input_data(test_df)
         test_series = result_df["cleaned_text"]
@@ -19,8 +18,14 @@ class CleanInputDataTest(unittest.TestCase):
 
         pandas.util.testing.assert_series_equal(test_series, assert_series)
 
-    def test_for_no_multiple_spaces_present(self):
+    def test_first_column_is_non_numeric_then_raise_error(self):
+        test_df = pd.DataFrame({"non_text_column": [8000, 200],
+                                "description": ['spam', 'ham']})
 
+        with self.assertRaises(TypeError):
+            ngram_analysis.clean_input_data(test_df)
+
+    def test_for_no_multiple_spaces_present(self):
         test_df = pd.DataFrame({"description": ["Num.ber ... is 1 800 800", "$200,000...45"]})
         result_df = ngram_analysis.clean_input_data(test_df)
         test_series = result_df["cleaned_text"]
@@ -30,7 +35,6 @@ class CleanInputDataTest(unittest.TestCase):
         pandas.util.testing.assert_series_equal(test_series, assert_series)
 
     def test_for_special_keywords(self):
-
         test_df = pd.DataFrame(
             {
                 "description": [
@@ -57,7 +61,6 @@ class CleanInputDataTest(unittest.TestCase):
         pandas.util.testing.assert_series_equal(test_series, assert_series)
 
     def test_for_emoji_support(self):
-
         test_df = pd.DataFrame(
             {
                 "description": [
