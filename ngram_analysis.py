@@ -77,7 +77,7 @@ def clean_input_data(input_data_df):
     # We just want to remove the most popular punctuation to remove redundant
     # duplicate ngrams while also want to have an insight into how less
     # common characters influence the performance.
-    stop_characters = '.,:;?!()\\n"'
+    stop_characters = '.,:;?!()"'
 
     input_data_df["cleaned_text"] = input_data_df["cleaned_text"].str.lower()
 
@@ -96,7 +96,6 @@ def clean_input_data(input_data_df):
 ###################
 # MAIN EXECUTABLE #
 ###################
-
 
 def execute_ngram_analysis(input_file):
 
