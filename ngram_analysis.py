@@ -2,9 +2,6 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Range n-gram splitting
-* Create a post-processing DataFrame containing the original dataframe with
-    new columns containing ngrams
 * Create n-gram based DataFrames which sums everything up with respect towards
     the string based columns.
 * Combine all of the n-gram based DF's and post-processing DataFrame into a
@@ -118,7 +115,6 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
     return input_data_cleaned_df
 
 
-
 ###################
 # MAIN EXECUTABLE #
 ###################
@@ -135,7 +131,6 @@ def execute_ngram_analysis(input_file):
     input_data_cleaned_df = clean_input_data(input_data_df)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
-
 
     pass
 
