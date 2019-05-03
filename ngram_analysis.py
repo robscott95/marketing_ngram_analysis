@@ -49,7 +49,7 @@ def clean_input_data(input_data_df):
         Examples:
             >>> from ngram_analysis import delete_spaces_in_substrings
             >>> test = "test stuff {=venueprice venue} and 1 800 800"
-            >>> delete_spaces_in_substrings(s_1)
+            >>> delete_spaces_in_substrings(test)
             "test stuff {=venuepricevenue} and 1800800"
         """
         matches = re.findall(pat, s)
