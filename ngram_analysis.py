@@ -65,7 +65,7 @@ def clean_input_data(input_data_df):
     # Parent's Function Logic
     # -----------------------
 
-    if not input_data_df.iloc[0].dtype == "O":
+    if not input_data_df.iloc[:, 0].dtype == "O":
         raise TypeError(f"The first column of the input file is not text based.")
 
     input_data_df["cleaned_text"] = input_data_df.iloc[:, 0]
@@ -118,6 +118,7 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
     return input_data_cleaned_df
 
 
+
 ###################
 # MAIN EXECUTABLE #
 ###################
@@ -134,6 +135,7 @@ def execute_ngram_analysis(input_file):
     input_data_cleaned_df = clean_input_data(input_data_df)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
+
 
     pass
 
