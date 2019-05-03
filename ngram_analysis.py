@@ -48,9 +48,11 @@ def clean_input_data(input_data_df):
         given string. Substrings are determined by the pat argument,
         which is a regex pattern.
 
-        Example:
-            - test stuff {=venueprice venue}: test stuff {=venuepricevenue}
-            - 1 800 800 and other: 1800800 and other
+        Examples:
+            >>> from ngram_analysis import delete_spaces_in_substrings
+            >>> test = "test stuff {=venueprice venue} and 1 800 800"
+            >>> delete_spaces_in_substrings(s_1)
+            "test stuff {=venuepricevenue} and 1800800"
         """
         matches = re.findall(pat, s)
 
@@ -93,6 +95,32 @@ def clean_input_data(input_data_df):
     return input_data_df
 
 
+def create_ngrams(input_data_cleaned_df, start=1, end=4):
+    '''
+    Helper function for creating n-grams.
+    n is range between start and end (inclusive).
+
+    Examples:
+        `df` contains `cleaned_text` and inside - "jack and jill"
+
+        >>> from ngram_analysis import create_ngrams
+        >>> create_ngrams(df.iloc[0])
+        df["1-gram"]: {"jack", "and", "jill"}
+        df["2-gram"]: {"jack and", "and jill"}
+        df["3-gram"]: {"jack and jill"}
+        df["4-gram"]: set()
+    '''
+
+    for n in range(start, end + 1):
+        n_gram = f"{n}-gram"
+        input_data_cleaned_df[n_gram] = input_data_cleaned_df['cleaned_text'].apply(
+            # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
+            lambda s: set(' '.join(gram) for gram in set(nltk.ngrams(s.split(), n)))
+        )
+
+    return input_data_cleaned_df
+
+
 ###################
 # MAIN EXECUTABLE #
 ###################
@@ -105,8 +133,10 @@ def execute_ngram_analysis(input_file):
         print(f"Reading {input_file} has caused an error:\n{e}")
         return None
 
-    input_data_df = clean_input_data(input_data_df)
-    # input_data_with_ngrams_df = create_ngrams()
+    input_data_cleaned_df = clean_input_data(input_data_df)
+    input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
+    print("File cleaning and processing done...")
+
 
     pass
 
