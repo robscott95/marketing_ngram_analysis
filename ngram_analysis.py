@@ -2,8 +2,6 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Create n-gram based DataFrames which sums everything up with respect towards
-    the string based columns.
 * Combine all of the n-gram based DF's and post-processing DataFrame into a
     single dictionary that will be saved into an .xlsx file.
 * Support multi-processing
@@ -149,6 +147,8 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
     merging_columns = performance_columns.copy()
     merging_columns.append('index')
 
+    ngram_performance_dict = {}
+
     for ngram in ngram_columns:
         # This returns us a DataFrame which has n-gram keyword
         # in one column, and the original index (key) in the other.
@@ -163,11 +163,14 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
             input_data_with_ngrams_df[merging_columns], on='index'
         ).drop(columns=['index'])
 
-        ngram_performance_df = ngram_performance_df.groupby(ngram).apply(aggregate_by_dtype)
+        ngram_performance_df = ngram_performance_df.groupby(ngram) \
+                                                   .apply(aggregate_by_dtype) \
+                                                   .reset_index()
+        ngram_performance_dict[ngram] = ngram_performance_df
 
-        pass
+    ngram_performance_dict['Original Processed Data'] = input_data_with_ngrams_df.drop('index', axis=1)
 
-    return performance_columns
+    return ngram_performance_dict
 
 ###################
 # MAIN EXECUTABLE #
@@ -190,7 +193,13 @@ def execute_ngram_analysis(input_file):
     print("Calculating performance...")
     ngram_performance_dict = calculate_ngram_performance(input_data_with_ngrams_df)
 
-    pass
+    output_file = 'output.xlsx'
+    print(f"Calculating performance's done. Saving to {output_file}")
+    with pd.ExcelWriter(output_file) as writer:
+        for ngram, performance_df in ngram_performance_dict.items():
+            performance_df.to_excel(writer, sheet_name=ngram, index=False)
+
+    return ngram_performance_dict
 
 
 #####################
