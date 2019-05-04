@@ -130,13 +130,23 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 
 
 def calculate_ngram_performance(input_data_with_ngrams_df):
+
+    def aggregate_by_dtype(x):
+        d = {}
+        for column in x.columns[1:]:
+            if x[column].dtype == 'O':
+                d[column] = ', '.join(x[column])
+            else:
+                d[column] = x[column].sum()
+        return pd.Series(d)
+
     input_df_columns = input_data_with_ngrams_df.columns.tolist()
     ngram_columns = [col for col in input_df_columns if '-gram' in col]
     performance_columns = [col for col in input_df_columns[1:]
                            if (col not in ngram_columns) and (col != 'cleaned_text')]
 
     input_data_with_ngrams_df.reset_index(level=0, inplace=True)  # Key for merging
-    merging_columns = performance_columns
+    merging_columns = performance_columns.copy()
     merging_columns.append('index')
 
     for ngram in ngram_columns:
@@ -146,13 +156,14 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
             input_data_with_ngrams_df[ngram].values.tolist()
         ).reset_index(level=0) \
          .melt(
-             id_vars=['index'], value_name=f"{ngram} Keywords"
+             id_vars=['index'], value_name=ngram
         ).dropna().drop(columns=['variable'])
 
         ngram_performance_df = id_and_ngram_df.merge(
             input_data_with_ngrams_df[merging_columns], on='index'
         ).drop(columns=['index'])
 
+        ngram_performance_df = ngram_performance_df.groupby(ngram).apply(aggregate_by_dtype)
 
         pass
 
