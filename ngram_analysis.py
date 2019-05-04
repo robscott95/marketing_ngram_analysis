@@ -69,6 +69,12 @@ def clean_input_data(input_data_df):
     if not input_data_df.iloc[:, 0].dtype == "O":
         raise TypeError(f"The first column of the input file is not text based.")
 
+    # Used in counting how many times a given keyword occured
+    input_data_df['Unique Occurences'] = 1
+    cols = input_data_df.columns.tolist()
+    cols.insert(1, cols.pop(cols.index('Unique Occurences')))
+    input_data_df = input_data_df[cols]
+
     input_data_df["cleaned_text"] = input_data_df.iloc[:, 0]
 
     input_data_df = input_data_df[pd.notnull(input_data_df.iloc[:, 0])]
