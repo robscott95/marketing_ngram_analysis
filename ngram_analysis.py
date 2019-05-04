@@ -135,7 +135,7 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
         d = {}
         for column in x.columns[1:]:
             if x[column].dtype == 'O':
-                d[column] = ', '.join(x[column])
+                d[column] = ', '.join(set(x[column]))
             else:
                 d[column] = x[column].sum()
         return pd.Series(d)
