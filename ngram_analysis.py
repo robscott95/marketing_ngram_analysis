@@ -18,6 +18,10 @@ import re
 
 pd.options.mode.chained_assignment = None
 
+##############################
+# CLEANING AND PREPROCESSING #
+##############################
+
 
 def clean_input_data(input_data_df):
     """Helper function for cleaning the main text column (default: first one).
@@ -114,6 +118,39 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 
     return input_data_cleaned_df
 
+###########################
+# CALCULATING PERFORMANCE #
+###########################
+
+
+def calculate_ngram_performance(input_data_with_ngrams_df):
+    input_df_columns = input_data_with_ngrams_df.columns.tolist()
+    ngram_columns = [col for col in input_df_columns if '-gram' in col]
+    performance_columns = [col for col in input_df_columns[1:]
+                           if (col not in ngram_columns) and (col != 'cleaned_text')]
+
+    input_data_with_ngrams_df.reset_index(level=0, inplace=True)  # Key for merging
+    merging_columns = performance_columns
+    merging_columns.append('index')
+
+    for ngram in ngram_columns:
+        # This returns us a DataFrame which has n-gram keyword
+        # in one column, and the original index (key) in the other.
+        id_and_ngram_df = pd.DataFrame(
+            input_data_with_ngrams_df[ngram].values.tolist()
+        ).reset_index(level=0) \
+         .melt(
+             id_vars=['index'], value_name=f"{ngram} Keywords"
+        ).dropna().drop(columns=['variable'])
+
+        ngram_performance_df = id_and_ngram_df.merge(
+            input_data_with_ngrams_df[merging_columns], on='index'
+        ).drop(columns=['index'])
+
+
+        pass
+
+    return performance_columns
 
 ###################
 # MAIN EXECUTABLE #
@@ -128,9 +165,13 @@ def execute_ngram_analysis(input_file):
         print(f"Reading {input_file} has caused an error:\n{e}")
         return None
 
+    print("Cleaning and processing input data...")
     input_data_cleaned_df = clean_input_data(input_data_df)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
+
+    print("Calculating performance...")
+    ngram_performance_dict = calculate_ngram_performance(input_data_with_ngrams_df)
 
     pass
 
