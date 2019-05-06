@@ -2,11 +2,12 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Combine all of the n-gram based DF's and post-processing DataFrame into a
-    single dictionary that will be saved into an .xlsx file.
-* Support multi-processing
 * Support folder parsing
+* Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
+
+TODO:
+* Tests for the ngram analysis module
 """
 
 import pandas as pd
@@ -68,9 +69,9 @@ def clean_input_data(input_data_df):
         raise TypeError(f"The first column of the input file is not text based.")
 
     # Used in counting how many times a given keyword occured
-    input_data_df['Unique Occurences'] = 1
+    input_data_df["Unique Occurences"] = 1
     cols = input_data_df.columns.tolist()
-    cols.insert(1, cols.pop(cols.index('Unique Occurences')))
+    cols.insert(1, cols.pop(cols.index("Unique Occurences")))
     input_data_df = input_data_df[cols]
 
     input_data_df["cleaned_text"] = input_data_df.iloc[:, 0]
@@ -116,11 +117,12 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
     for n in range(start, end + 1):
         n_gram = f"{n}-gram"
         input_data_cleaned_df[n_gram] = input_data_cleaned_df["cleaned_text"].apply(
-            # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
+            # set(nltk.ngrams(...)) returns a tuple of ngrams, that"s why we join them.
             lambda s: set(" ".join(gram) for gram in set(nltk.ngrams(s.split(), n)))
         )
 
     return input_data_cleaned_df
+
 
 ###########################
 # CALCULATING PERFORMANCE #
@@ -128,49 +130,92 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 
 
 def calculate_ngram_performance(input_data_with_ngrams_df):
+    """Helper function which aggregates the unique n-grams and apply's
+    two different types of aggregation depending if the performance
+    data is text or numerical based.
+
+    Args:
+        - input_data_with_ngrams_df (DataFrame): DataFrame containing
+            the text, performance columns, cleaned text and ngram
+            columns.
+
+    Returns:
+        - dict: A dictionary containing key value pairs of the ngram
+            and ngram's performance DataFrame.
+
+            {
+                "1-gram": DataFrame({
+                    "1-gram": ["jack", "and", "jill"],
+                    "link_clicks": [1000, 3000, 2000],
+                    "in_ads": ["ad_1", "ad_1, ad_2", "ad_2"]
+                }),
+                "2-gram": DataFrame({
+                    "2-gram": ["jack and", "and jill"],
+                    "link_clicks": [1000, 2000],
+                    "in_ads": ["ad_1", "ad_2"]
+                })
+            }
+    """
 
     def aggregate_by_dtype(x):
+        """Inner helper function for the groupby aggregation
+
+        Note:
+            - The aggregated returned text has only unique elements
+                seperated by a ",".
+        """
         d = {}
         for column in x.columns[1:]:
-            if x[column].dtype == 'O':
-                d[column] = ', '.join(set(x[column]))
+            if x[column].dtype == "O":
+                d[column] = ", ".join(set(x[column]))
             else:
                 d[column] = x[column].sum()
         return pd.Series(d)
 
+    # -----------------------
+    # Parent's Function Logic
+    # -----------------------
+
     input_df_columns = input_data_with_ngrams_df.columns.tolist()
-    ngram_columns = [col for col in input_df_columns if '-gram' in col]
-    performance_columns = [col for col in input_df_columns[1:]
-                           if (col not in ngram_columns) and (col != 'cleaned_text')]
+    ngram_columns = [col for col in input_df_columns if "-gram" in col]
+    performance_columns = [
+        col
+        for col in input_df_columns[1:]
+        if (col not in ngram_columns) and (col != "cleaned_text")
+    ]
 
     input_data_with_ngrams_df.reset_index(level=0, inplace=True)  # Key for merging
     merging_columns = performance_columns.copy()
-    merging_columns.append('index')
+    merging_columns.append("index")
 
     ngram_performance_dict = {}
 
     for ngram in ngram_columns:
         # This returns us a DataFrame which has n-gram keyword
         # in one column, and the original index (key) in the other.
-        id_and_ngram_df = pd.DataFrame(
-            input_data_with_ngrams_df[ngram].values.tolist()
-        ).reset_index(level=0) \
-         .melt(
-             id_vars=['index'], value_name=ngram
-        ).dropna().drop(columns=['variable'])
+        id_and_ngram_df = (
+            pd.DataFrame(input_data_with_ngrams_df[ngram].values.tolist())
+            .reset_index(level=0)
+            .melt(id_vars=["index"], value_name=ngram)
+            .dropna()
+            .drop(columns=["variable"])
+        )
 
         ngram_performance_df = id_and_ngram_df.merge(
-            input_data_with_ngrams_df[merging_columns], on='index'
-        ).drop(columns=['index'])
+            input_data_with_ngrams_df[merging_columns], on="index"
+        ).drop(columns=["index"])
 
-        ngram_performance_df = ngram_performance_df.groupby(ngram) \
-                                                   .apply(aggregate_by_dtype) \
-                                                   .reset_index()
+        ngram_performance_df = (
+            ngram_performance_df.groupby(ngram).apply(aggregate_by_dtype).reset_index()
+        )
         ngram_performance_dict[ngram] = ngram_performance_df
 
-    ngram_performance_dict['Original Processed Data'] = input_data_with_ngrams_df.drop('index', axis=1)
+    ngram_performance_dict["Original Processed Data"] = input_data_with_ngrams_df.drop(
+        "index", axis=1
+    )
 
     return ngram_performance_dict
+
 
 ###################
 # MAIN EXECUTABLE #
@@ -193,7 +238,7 @@ def execute_ngram_analysis(input_file):
     print("Calculating performance...")
     ngram_performance_dict = calculate_ngram_performance(input_data_with_ngrams_df)
 
-    output_file = 'output.xlsx'
+    output_file = "output.xlsx"
     print(f"Calculating performance's done. Saving to {output_file}")
     with pd.ExcelWriter(output_file) as writer:
         for ngram, performance_df in ngram_performance_dict.items():
