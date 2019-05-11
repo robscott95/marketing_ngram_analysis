@@ -8,7 +8,7 @@ TODO:
 * Support automatic downloading of data from Facebook and Google Ads.
 
 TODO:
-* Tests for the ngram analysis module
+* Rewrite the ngram_analysis_test to pytest
 """
 
 import pandas as pd
