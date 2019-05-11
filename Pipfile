@@ -11,6 +11,7 @@ flake8 = "*"
 nltk = "*"
 pandas = "*"
 argparse = "*"
+openpyxl = "*"
 
 [requires]
 python_version = "3.7"
