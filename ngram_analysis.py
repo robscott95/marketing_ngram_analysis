@@ -3,6 +3,7 @@ Script for performing a range n-gram split on passed data.
 
 TODO:
 * Support folder parsing
+* Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
 
@@ -23,27 +24,30 @@ pd.options.mode.chained_assignment = None
 
 
 def clean_input_data(input_data_df):
-    """Helper function for cleaning the main text column (default: first one).
+    """Helper function for cleaning the main text column
+    (default: first one).
 
-    Deletes stop characters and in the event of Dynamic Keyword Insertations
-    removes spaces between the words inside of curly braces or spaces between
-    digits.
+    Deletes stop characters. And in the event of numbers or
+    Dynamic Keyword Insertations - removes spaces between the words
+    inside of curly braces or spaces between digits.
 
     Args:
         - input_data_df (DataFrame): The DF in which the first column
             contains the text that will be tokenized.
 
     Returns:
-        - DataFrame: Modified `input_data_df` which has now an added column
-            `cleaned_text` which contains the processed and cleaned text.
+        - DataFrame: Modified `input_data_df` which has now an added
+            column `cleaned_text` which contains the processed and
+            cleaned text.
 
     Raises:
-        - TypeError: When the first column of the DataFrame isn't an object.
+        - TypeError: When the first column of the DataFrame isn't an
+            object.
     """
 
     def delete_spaces_in_substrings(s, pat=r"{.*?}|\d[\d ]*\d"):
-        """Helper inner function for removing spaces in a substring of a
-        given string. Substrings are determined by the pat argument,
+        """Helper inner function for removing spaces in a substring of
+        a given string. Substrings are determined by the pat argument,
         which is a regex pattern.
 
         Examples:
@@ -117,7 +121,7 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
     for n in range(start, end + 1):
         n_gram = f"{n}-gram"
         input_data_cleaned_df[n_gram] = input_data_cleaned_df["cleaned_text"].apply(
-            # set(nltk.ngrams(...)) returns a tuple of ngrams, that"s why we join them.
+            # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
             lambda s: set(" ".join(gram) for gram in set(nltk.ngrams(s.split(), n)))
         )
 
@@ -223,6 +227,41 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
 
 
 def execute_ngram_analysis(input_file):
+    """The main function that takes in the path to the .csv with raw
+    data and returns the dict containing performance for each ngram.
+    Also saves to a file.
+
+    Args:
+        - input_file (str): The relative path to the raw data file in a
+            csv format.
+
+    Returns:
+        - dict: A dictionary containing key value pairs of the ngram
+            and ngram's performance DataFrame.
+
+            {
+                "1-gram": DataFrame({
+                    "1-gram": ["jack", "and", "jill"],
+                    "link_clicks": [1000, 3000, 2000],
+                    "in_ads": ["ad_1", "ad_1, ad_2", "ad_2"]
+                }),
+                "2-gram": DataFrame({
+                    "2-gram": ["jack and", "and jill"],
+                    "link_clicks": [1000, 2000],
+                    "in_ads": ["ad_1", "ad_2"]
+                })
+            }
+
+    Notes:
+        - Also saves the output to an .xlsx formatted file.
+        - Requirements for the input .csv file:
+            * The first column is required to be the text that you
+                wish to be analyzed, rest of the columns is
+                performance data.
+            * The performance data shouldn't be calculated in any
+                way (averages, ROI, etc.) as thiswill simply
+                return nonsense data due to summing them up.
+    """
 
     try:
         input_data_df = pd.read_csv(input_file)
