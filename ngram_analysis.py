@@ -5,13 +5,18 @@ TODO:
 * Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
+
+* Mention in readme to run `python -m spacy download en` as requirement
 """
 
 import pandas as pd
 import nltk
+import spacy
 import argparse
 import re
 import os
+
+from spacy.tokenizer import Tokenizer
 
 pd.options.mode.chained_assignment = None
 
@@ -20,7 +25,7 @@ pd.options.mode.chained_assignment = None
 ##############################
 
 
-def clean_input_data(input_data_df):
+def clean_input_data(input_data_df, lemmatize=False):
     """Helper function for cleaning the main text column
     (default: first one).
 
@@ -66,6 +71,7 @@ def clean_input_data(input_data_df):
     # Parent's Function Logic
     # -----------------------
 
+    # TODO: Rewrite this section using spacy's functions
     if not input_data_df.iloc[:, 0].dtype == "O":
         raise TypeError(f"The first column of the input file is not text based.")
 
@@ -97,6 +103,19 @@ def clean_input_data(input_data_df):
 
     input_data_df["cleaned_text"].replace({r"\s+": " "}, inplace=True, regex=True)
 
+    if lemmatize:
+        nlp = spacy.load('en')
+        # We don't want to seperate anything that wasn't specified in stop_characters
+        supress_re = re.compile(r'''[\.]''')
+        nlp.tokenizer = Tokenizer(nlp.vocab,
+                                  infix_finditer=supress_re.finditer,
+                                  suffix_search=supress_re.search,
+                                  prefix_search=supress_re.search)
+
+        input_data_df["cleaned_text"] = input_data_df["cleaned_text"].apply(
+            lambda s: " ".join([word.lemma_ for word in nlp(s)])
+        )
+
     return input_data_df
 
 
@@ -117,8 +136,9 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 
     for n in range(start, end + 1):
         n_gram = f"{n}-gram"
+
+        # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
         input_data_cleaned_df[n_gram] = input_data_cleaned_df["cleaned_text"].apply(
-            # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
             lambda s: set(" ".join(gram) for gram in set(nltk.ngrams(s.split(), n)))
         )
 
@@ -225,8 +245,12 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
 ###################
 
 
-def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
-                           output_file_prefix="Analysis of "):
+def execute_ngram_analysis(
+    input_file,
+    output_folder="ngram_analysis",
+    output_file_prefix="Analysis of ",
+    lemmatize=False,
+):
     """The main function that takes in the path to the .csv with raw
     data and returns the dict containing performance for each ngram.
     Also saves to a file.
@@ -262,6 +286,13 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
                 way (averages, ROI, etc.) as thiswill simply
                 return nonsense data due to summing them up.
     """
+    try:
+        if lemmatize:
+            spacy.load('en')
+    except OSError as e:
+        print(e)
+        print("Please make sure that you've ran `python -m spacy download en` via the console")
+        return None
 
     print(f"\nReading {input_file}")
     try:
@@ -271,7 +302,7 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
         return None
 
     print("Cleaning and processing input data...")
-    input_data_cleaned_df = clean_input_data(input_data_df)
+    input_data_cleaned_df = clean_input_data(input_data_df, lemmatize=lemmatize)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
 
@@ -305,23 +336,41 @@ if __name__ == "__main__":
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-file", '--input_file', type=str,
-                       help="""
-                       Relative path to the CSV file containing performance
-                       data.
-                       """)
-    group.add_argument("-folder", '--input_folder', type=str,
-                       help="""
-                       Relative path to the input folder containing
-                       only CSV's of raw performance data.
-                       """)
+    group.add_argument(
+        "-file",
+        "--input-file",
+        type=str,
+        help="""
+        Relative path to the CSV file containing performance
+        data.
+        """,
+    )
+    group.add_argument(
+        "-folder",
+        "--input-folder",
+        type=str,
+        help="""
+        Relative path to the input folder containing
+        only CSV's of raw performance data.
+        """,
+    )
+
+    parser.add_argument(
+        "--lemmatize",
+        action="store_true",
+        help="""
+        Lemmatize grams, converting each one of them to its base form.
+
+        For example rocks will become rock, and computed will become compute.
+        """)
+
     args = parser.parse_args()
 
     if args.input_folder:
         for filename in os.listdir(args.input_folder):
             file_location = os.path.join(args.input_folder, filename)
-            execute_ngram_analysis(file_location)
+            execute_ngram_analysis(file_location, lemmatize=args.lemmatize)
     elif args.input_file:
-        execute_ngram_analysis(args.input_file)
+        execute_ngram_analysis(args.input_file, lemmatize=args.lemmatize)
 
     print("\nAll done!")
