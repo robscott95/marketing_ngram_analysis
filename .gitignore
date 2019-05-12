@@ -109,3 +109,4 @@ venv.bak/
 # data
 data/
 output.xlsx
+ngram_analysis/

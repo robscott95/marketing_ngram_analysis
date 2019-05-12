@@ -5,7 +5,7 @@ import pandas as pd
 import pandas.util.testing
 
 
-class TestCleanInputData():
+class TestCleanInputData:
     def test_digits_after_cleaning_being_togheter(self):
         test_df = pd.DataFrame({"description": ["Number is 1 800 800", "$200,000.45"]})
         result_df = ngram_analysis.clean_input_data(test_df)
@@ -89,7 +89,7 @@ class TestCleanInputData():
         pandas.util.testing.assert_series_equal(result_series, assert_series)
 
 
-class TestCreateNgrams():
+class TestCreateNgrams:
     def test_return_target_pattern(self):
         test_df = pd.DataFrame(
             {
@@ -218,19 +218,19 @@ class TestCreateNgrams():
         assert_df = test_df
         assert_df["1-gram"] = [
             {"modern", "money", "management"},
-            {"lost", "your", "card", "is"}
+            {"lost", "your", "card", "is"},
         ]
         assert_df["2-gram"] = [
             {"modern money", "money management", "money money"},
-            {"lost your", "your card", "card card", "card is", "is lost"}
+            {"lost your", "your card", "card card", "card is", "is lost"},
         ]
         assert_df["3-gram"] = [
             {"modern money money", "money money management"},
-            {"lost your card", "your card card", "card card is", "card is lost"}
+            {"lost your card", "your card card", "card card is", "card is lost"},
         ]
         assert_df["4-gram"] = [
             {"modern money money management"},
-            {"lost your card card", "your card card is", "card card is lost"}
+            {"lost your card card", "your card card is", "card card is lost"},
         ]
 
         return_df = ngram_analysis.create_ngrams(test_df, start=1, end=4)
@@ -238,7 +238,7 @@ class TestCreateNgrams():
         pandas.util.testing.assert_frame_equal(return_df, assert_df)
 
 
-class TestCalculateNgramsPerformance():
+class TestCalculateNgramsPerformance:
     def test_numerical_aggregation(self):
         test_input_df = pd.DataFrame(
             {
@@ -247,52 +247,95 @@ class TestCalculateNgramsPerformance():
                     "jill and bart made money",
                 ],
                 "link_clicks": [1000, 2000],
-                "1-gram": [{'and', 'jack', 'money', 'made', 'jill'},
-                           {'and', 'money', 'made', 'bart', 'jill'}],
-                "2-gram": [{'made money', 'and jill', 'jack and', 'jill made'},
-                           {'made money', 'jill and', 'and bart', 'bart made'}],
-                "3-gram": [{'jack and jill', 'jill made money', 'and jill made'},
-                           {'bart made money', 'and bart made', 'jill and bart'}],
-                "4-gram": [{'and jill made money', 'jack and jill made'},
-                           {'and bart made money', 'jill and bart made'}]
+                "1-gram": [
+                    {"and", "jack", "money", "made", "jill"},
+                    {"and", "money", "made", "bart", "jill"},
+                ],
+                "2-gram": [
+                    {"made money", "and jill", "jack and", "jill made"},
+                    {"made money", "jill and", "and bart", "bart made"},
+                ],
+                "3-gram": [
+                    {"jack and jill", "jill made money", "and jill made"},
+                    {"bart made money", "and bart made", "jill and bart"},
+                ],
+                "4-gram": [
+                    {"and jill made money", "jack and jill made"},
+                    {"and bart made money", "jill and bart made"},
+                ],
             }
         )
 
         assert_dict = {
-            "1-gram": pd.DataFrame({
-                "1-gram": ["and", "bart", "jack", "jill", "made", "money"],
-                "link_clicks": [3000, 2000, 1000, 3000, 3000, 3000]
-            }),
-            "2-gram": pd.DataFrame({
-                "2-gram": ["and bart", "and jill", "bart made",
-                           "jack and", "jill and", "jill made",
-                           "made money"],
-                "link_clicks": [2000, 1000, 2000, 1000, 2000, 1000, 3000]
-            }),
-            "3-gram": pd.DataFrame({
-                "3-gram": ["and bart made", "and jill made", "bart made money",
-                           "jack and jill", "jill and bart", "jill made money"],
-                "link_clicks": [2000, 1000, 2000, 1000, 2000, 1000]
-            }),
-            "4-gram": pd.DataFrame({
-                "4-gram": ["and bart made money", "and jill made money",
-                           "jack and jill made", "jill and bart made"],
-                "link_clicks": [2000, 1000, 1000, 2000]
-            }),
-            "Original Processed Data": pd.DataFrame({
-                "cleaned_text": ["jack and jill made money",
-                                 "jill and bart made money"],
-                "link_clicks": [1000, 2000],
-                "1-gram": [{'and', 'jack', 'money', 'made', 'jill'},
-                           {'and', 'money', 'made', 'bart', 'jill'}],
-                "2-gram": [{'made money', 'and jill', 'jack and', 'jill made'},
-                           {'made money', 'jill and', 'and bart', 'bart made'}],
-                "3-gram": [{'jack and jill', 'jill made money', 'and jill made'},
-                           {'bart made money', 'and bart made', 'jill and bart'}],
-                "4-gram": [{'and jill made money', 'jack and jill made'},
-                           {'and bart made money', 'jill and bart made'}]
-            })
-
+            "1-gram": pd.DataFrame(
+                {
+                    "1-gram": ["and", "bart", "jack", "jill", "made", "money"],
+                    "link_clicks": [3000, 2000, 1000, 3000, 3000, 3000],
+                }
+            ),
+            "2-gram": pd.DataFrame(
+                {
+                    "2-gram": [
+                        "and bart",
+                        "and jill",
+                        "bart made",
+                        "jack and",
+                        "jill and",
+                        "jill made",
+                        "made money",
+                    ],
+                    "link_clicks": [2000, 1000, 2000, 1000, 2000, 1000, 3000],
+                }
+            ),
+            "3-gram": pd.DataFrame(
+                {
+                    "3-gram": [
+                        "and bart made",
+                        "and jill made",
+                        "bart made money",
+                        "jack and jill",
+                        "jill and bart",
+                        "jill made money",
+                    ],
+                    "link_clicks": [2000, 1000, 2000, 1000, 2000, 1000],
+                }
+            ),
+            "4-gram": pd.DataFrame(
+                {
+                    "4-gram": [
+                        "and bart made money",
+                        "and jill made money",
+                        "jack and jill made",
+                        "jill and bart made",
+                    ],
+                    "link_clicks": [2000, 1000, 1000, 2000],
+                }
+            ),
+            "Original Processed Data": pd.DataFrame(
+                {
+                    "cleaned_text": [
+                        "jack and jill made money",
+                        "jill and bart made money",
+                    ],
+                    "link_clicks": [1000, 2000],
+                    "1-gram": [
+                        {"and", "jack", "money", "made", "jill"},
+                        {"and", "money", "made", "bart", "jill"},
+                    ],
+                    "2-gram": [
+                        {"made money", "and jill", "jack and", "jill made"},
+                        {"made money", "jill and", "and bart", "bart made"},
+                    ],
+                    "3-gram": [
+                        {"jack and jill", "jill made money", "and jill made"},
+                        {"bart made money", "and bart made", "jill and bart"},
+                    ],
+                    "4-gram": [
+                        {"and jill made money", "jack and jill made"},
+                        {"and bart made money", "jill and bart made"},
+                    ],
+                }
+            ),
         }
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
@@ -311,52 +354,111 @@ class TestCalculateNgramsPerformance():
                     "jack and jill made money",
                     "jill and bart made money",
                 ],
-                "ad_id": ['ad_1', 'ad_2'],
-                "1-gram": [{'and', 'jack', 'money', 'made', 'jill'},
-                           {'and', 'money', 'made', 'bart', 'jill'}],
-                "2-gram": [{'made money', 'and jill', 'jack and', 'jill made'},
-                           {'made money', 'jill and', 'and bart', 'bart made'}],
-                "3-gram": [{'jack and jill', 'jill made money', 'and jill made'},
-                           {'bart made money', 'and bart made', 'jill and bart'}],
-                "4-gram": [{'and jill made money', 'jack and jill made'},
-                           {'and bart made money', 'jill and bart made'}]
+                "ad_id": ["ad_1", "ad_2"],
+                "1-gram": [
+                    {"and", "jack", "money", "made", "jill"},
+                    {"and", "money", "made", "bart", "jill"},
+                ],
+                "2-gram": [
+                    {"made money", "and jill", "jack and", "jill made"},
+                    {"made money", "jill and", "and bart", "bart made"},
+                ],
+                "3-gram": [
+                    {"jack and jill", "jill made money", "and jill made"},
+                    {"bart made money", "and bart made", "jill and bart"},
+                ],
+                "4-gram": [
+                    {"and jill made money", "jack and jill made"},
+                    {"and bart made money", "jill and bart made"},
+                ],
             }
         )
 
         assert_dict = {
-            "1-gram": pd.DataFrame({
-                "1-gram": ["and", "bart", "jack", "jill", "made", "money"],
-                "ad_id": ['ad_2, ad_1', 'ad_2', 'ad_1', 'ad_2, ad_1', 'ad_2, ad_1', 'ad_2, ad_1']
-            }),
-            "2-gram": pd.DataFrame({
-                "2-gram": ["and bart", "and jill", "bart made",
-                           "jack and", "jill and", "jill made",
-                           "made money"],
-                "ad_id": ['ad_2', 'ad_1', 'ad_2', 'ad_1', 'ad_2', 'ad_1', 'ad_2, ad_1']
-            }),
-            "3-gram": pd.DataFrame({
-                "3-gram": ["and bart made", "and jill made", "bart made money",
-                           "jack and jill", "jill and bart", "jill made money"],
-                "ad_id": ['ad_2', 'ad_1', 'ad_2', 'ad_1', 'ad_2', 'ad_1']
-            }),
-            "4-gram": pd.DataFrame({
-                "4-gram": ["and bart made money", "and jill made money",
-                           "jack and jill made", "jill and bart made"],
-                "ad_id": ['ad_2', 'ad_1', 'ad_1', 'ad_2']
-            }),
-            "Original Processed Data": pd.DataFrame({
-                "cleaned_text": ["jack and jill made money",
-                                 "jill and bart made money"],
-                "ad_id": ['ad_1', 'ad_2'],
-                "1-gram": [{'and', 'jack', 'money', 'made', 'jill'},
-                           {'and', 'money', 'made', 'bart', 'jill'}],
-                "2-gram": [{'made money', 'and jill', 'jack and', 'jill made'},
-                           {'made money', 'jill and', 'and bart', 'bart made'}],
-                "3-gram": [{'jack and jill', 'jill made money', 'and jill made'},
-                           {'bart made money', 'and bart made', 'jill and bart'}],
-                "4-gram": [{'and jill made money', 'jack and jill made'},
-                           {'and bart made money', 'jill and bart made'}]
-            })
+            "1-gram": pd.DataFrame(
+                {
+                    "1-gram": ["and", "bart", "jack", "jill", "made", "money"],
+                    "ad_id": [
+                        "ad_2, ad_1",
+                        "ad_2",
+                        "ad_1",
+                        "ad_2, ad_1",
+                        "ad_2, ad_1",
+                        "ad_2, ad_1",
+                    ],
+                }
+            ),
+            "2-gram": pd.DataFrame(
+                {
+                    "2-gram": [
+                        "and bart",
+                        "and jill",
+                        "bart made",
+                        "jack and",
+                        "jill and",
+                        "jill made",
+                        "made money",
+                    ],
+                    "ad_id": [
+                        "ad_2",
+                        "ad_1",
+                        "ad_2",
+                        "ad_1",
+                        "ad_2",
+                        "ad_1",
+                        "ad_2, ad_1",
+                    ],
+                }
+            ),
+            "3-gram": pd.DataFrame(
+                {
+                    "3-gram": [
+                        "and bart made",
+                        "and jill made",
+                        "bart made money",
+                        "jack and jill",
+                        "jill and bart",
+                        "jill made money",
+                    ],
+                    "ad_id": ["ad_2", "ad_1", "ad_2", "ad_1", "ad_2", "ad_1"],
+                }
+            ),
+            "4-gram": pd.DataFrame(
+                {
+                    "4-gram": [
+                        "and bart made money",
+                        "and jill made money",
+                        "jack and jill made",
+                        "jill and bart made",
+                    ],
+                    "ad_id": ["ad_2", "ad_1", "ad_1", "ad_2"],
+                }
+            ),
+            "Original Processed Data": pd.DataFrame(
+                {
+                    "cleaned_text": [
+                        "jack and jill made money",
+                        "jill and bart made money",
+                    ],
+                    "ad_id": ["ad_1", "ad_2"],
+                    "1-gram": [
+                        {"and", "jack", "money", "made", "jill"},
+                        {"and", "money", "made", "bart", "jill"},
+                    ],
+                    "2-gram": [
+                        {"made money", "and jill", "jack and", "jill made"},
+                        {"made money", "jill and", "and bart", "bart made"},
+                    ],
+                    "3-gram": [
+                        {"jack and jill", "jill made money", "and jill made"},
+                        {"bart made money", "and bart made", "jill and bart"},
+                    ],
+                    "4-gram": [
+                        {"and jill made money", "jack and jill made"},
+                        {"and bart made money", "jill and bart made"},
+                    ],
+                }
+            ),
         }
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
@@ -369,10 +471,22 @@ class TestCalculateNgramsPerformance():
         # with "ad_2, ad_1" swapping to "ad_1, ad_2".
         assert_dict1 = {k: v.to_dict() for k, v in assert_dict.items()}
         assert_dict2 = {k: v.to_dict() for k, v in assert_dict.items()}  # Deep copy
-        assert_dict2['1-gram']['ad_id'] = {0: 'ad_1, ad_2', 1: 'ad_2', 2: 'ad_1',
-                                           3: 'ad_1, ad_2', 4: 'ad_1, ad_2',
-                                           5: 'ad_1, ad_2'}
-        assert_dict2['2-gram']['ad_id'] = {0: 'ad_2', 1: 'ad_1', 2: 'ad_2', 3: 'ad_1',
-                                           4: 'ad_2', 5: 'ad_1', 6: 'ad_1, ad_2'}
+        assert_dict2["1-gram"]["ad_id"] = {
+            0: "ad_1, ad_2",
+            1: "ad_2",
+            2: "ad_1",
+            3: "ad_1, ad_2",
+            4: "ad_1, ad_2",
+            5: "ad_1, ad_2",
+        }
+        assert_dict2["2-gram"]["ad_id"] = {
+            0: "ad_2",
+            1: "ad_1",
+            2: "ad_2",
+            3: "ad_1",
+            4: "ad_2",
+            5: "ad_1",
+            6: "ad_1, ad_2",
+        }
 
         assert (return_dict == assert_dict1) or (return_dict == assert_dict2)

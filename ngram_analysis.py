@@ -12,6 +12,7 @@ import pandas as pd
 import nltk
 import argparse
 import re
+import os
 
 pd.options.mode.chained_assignment = None
 
@@ -223,7 +224,8 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
 ###################
 
 
-def execute_ngram_analysis(input_file):
+def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
+                           output_file_prefix="Analysis of "):
     """The main function that takes in the path to the .csv with raw
     data and returns the dict containing performance for each ngram.
     Also saves to a file.
@@ -274,9 +276,13 @@ def execute_ngram_analysis(input_file):
     print("Calculating performance...")
     ngram_performance_dict = calculate_ngram_performance(input_data_with_ngrams_df)
 
-    output_file = "output.xlsx"
-    print(f"Calculating performance's done. Saving to {output_file}")
-    with pd.ExcelWriter(output_file) as writer:
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    input_filename = os.path.splitext(os.path.basename(input_file))[0]
+    output_file = f"{output_file_prefix}{input_filename}.xlsx"
+    full_output_path = os.path.join(output_folder, output_file)
+    print(f"Calculating performance's done. Saving to {full_output_path}")
+    with pd.ExcelWriter(full_output_path) as writer:
         for ngram, performance_df in ngram_performance_dict.items():
             performance_df.to_excel(writer, sheet_name=ngram, index=False)
 
