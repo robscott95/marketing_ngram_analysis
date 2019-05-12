@@ -2,7 +2,6 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Support folder parsing
 * Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
@@ -212,6 +211,8 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
         )
         ngram_performance_dict[ngram] = ngram_performance_df
 
+        print(f"Calculation of {ngram} done.")
+
     ngram_performance_dict["Original Processed Data"] = input_data_with_ngrams_df.drop(
         "index", axis=1
     )
@@ -262,6 +263,7 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
                 return nonsense data due to summing them up.
     """
 
+    print(f"\nReading {input_file}")
     try:
         input_data_df = pd.read_csv(input_file)
     except Exception as e:
@@ -285,6 +287,7 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
     with pd.ExcelWriter(full_output_path) as writer:
         for ngram, performance_df in ngram_performance_dict.items():
             performance_df.to_excel(writer, sheet_name=ngram, index=False)
+    print(f"Saved to file successfully.")
 
     return ngram_performance_dict
 
@@ -301,14 +304,24 @@ if __name__ == "__main__":
     """
     )
 
-    parser.add_argument(
-        "input_file",
-        type=str,
-        help="""
-    Relative path to input file that should be analyzed.
-    """,
-    )
-
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-file", '--input_file', type=str,
+                       help="""
+                       Relative path to the CSV file containing performance
+                       data.
+                       """)
+    group.add_argument("-folder", '--input_folder', type=str,
+                       help="""
+                       Relative path to the input folder containing
+                       only CSV's of raw performance data.
+                       """)
     args = parser.parse_args()
 
-    execute_ngram_analysis(args.input_file)
+    if args.input_folder:
+        for filename in os.listdir(args.input_folder):
+            file_location = os.path.join(args.input_folder, filename)
+            execute_ngram_analysis(file_location)
+    elif args.input_file:
+        execute_ngram_analysis(args.input_file)
+
+    print("\nAll done!")
