@@ -6,9 +6,6 @@ TODO:
 * Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
-
-TODO:
-* Rewrite the ngram_analysis_test to pytest
 """
 
 import pandas as pd
