@@ -2,11 +2,12 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
 
 * Mention in readme to run `python -m spacy download en` as requirement
+* Fix documentation for lemmatization feature
+* Known issues - https://github.com/explosion/spaCy/issues/3665
 """
 
 import pandas as pd
@@ -102,15 +103,24 @@ def clean_input_data(input_data_df, lemmatize=False):
     )
 
     input_data_df["cleaned_text"].replace({r"\s+": " "}, inplace=True, regex=True)
+    input_data_df["safekeeping"] = input_data_df["cleaned_text"].copy(deep=True)
 
     if lemmatize:
-        nlp = spacy.load('en')
+        print("Lemmatizing the cleaned text...")
+        nlp = spacy.load("en")
         # We don't want to seperate anything that wasn't specified in stop_characters
-        supress_re = re.compile(r'''[\.]''')
-        nlp.tokenizer = Tokenizer(nlp.vocab,
-                                  infix_finditer=supress_re.finditer,
-                                  suffix_search=supress_re.search,
-                                  prefix_search=supress_re.search)
+        supress_re = re.compile(r"""[\.]""")
+        nlp.tokenizer = Tokenizer(
+            nlp.vocab,
+            infix_finditer=supress_re.finditer,
+            suffix_search=supress_re.search,
+            prefix_search=supress_re.search,
+        )
+
+        # Weird bug present in current v2.1.4 of Spacy fix
+        nlp.tokenizer.add_special_case(
+            "who's", [{spacy.attrs.ORTH: "who's", spacy.attrs.LEMMA: "who's"}]
+        )
 
         input_data_df["cleaned_text"] = input_data_df["cleaned_text"].apply(
             lambda s: " ".join([word.lemma_ for word in nlp(s)])
@@ -288,10 +298,12 @@ def execute_ngram_analysis(
     """
     try:
         if lemmatize:
-            spacy.load('en')
+            spacy.load("en")
     except OSError as e:
         print(e)
-        print("Please make sure that you've ran `python -m spacy download en` via the console")
+        print(
+            "Please make sure that you've ran `python -m spacy download en` via the console"
+        )
         return None
 
     print(f"\nReading {input_file}")
@@ -362,7 +374,8 @@ if __name__ == "__main__":
         Lemmatize grams, converting each one of them to its base form.
 
         For example rocks will become rock, and computed will become compute.
-        """)
+        """,
+    )
 
     args = parser.parse_args()
 
