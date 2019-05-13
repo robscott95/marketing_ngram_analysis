@@ -13,6 +13,7 @@ pandas = "*"
 argparse = "*"
 openpyxl = "*"
 pytest = "*"
+spacy = "*"
 
 [requires]
 python_version = "3.7"

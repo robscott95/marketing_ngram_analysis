@@ -2,16 +2,22 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Add an optional argument for stemming (LancasterStemmer might be useful)
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
+
+* Mention in readme to run `python -m spacy download en` as requirement
+* Fix documentation for lemmatization feature
+* Known issues - https://github.com/explosion/spaCy/issues/3665
 """
 
 import pandas as pd
 import nltk
+import spacy
 import argparse
 import re
 import os
+
+from spacy.tokenizer import Tokenizer
 
 pd.options.mode.chained_assignment = None
 
@@ -20,7 +26,7 @@ pd.options.mode.chained_assignment = None
 ##############################
 
 
-def clean_input_data(input_data_df):
+def clean_input_data(input_data_df, lemmatize=False):
     """Helper function for cleaning the main text column
     (default: first one).
 
@@ -28,9 +34,16 @@ def clean_input_data(input_data_df):
     Dynamic Keyword Insertations - removes spaces between the words
     inside of curly braces or spaces between digits.
 
+    Supports lemmatization.
+
     Args:
         - input_data_df (DataFrame): The DF in which the first column
             contains the text that will be tokenized.
+        - lemmatize (bool, optional): If set to True the cleaned data
+            will also be very conservatively lemmatized, trying to
+            normalize only words that are more or less sure with
+            omitting word that have special characters in them.
+            Defaults to False.
 
     Returns:
         - DataFrame: Modified `input_data_df` which has now an added
@@ -40,6 +53,13 @@ def clean_input_data(input_data_df):
     Raises:
         - TypeError: When the first column of the DataFrame isn't an
             object.
+
+    Notes:
+        - Current version of Spacy (v2.1.4) is known to have some issues
+            with lemmatization
+            see (https://github.com/explosion/spaCy/issues/3665).
+            So please keep in mind it's more of "experimental" although
+            still quite useful.
     """
 
     def delete_spaces_in_substrings(s, pat=r"{.*?}|\d[\d ]*\d"):
@@ -66,6 +86,7 @@ def clean_input_data(input_data_df):
     # Parent's Function Logic
     # -----------------------
 
+    # TODO: Rewrite this section using spacy's functions
     if not input_data_df.iloc[:, 0].dtype == "O":
         raise TypeError(f"The first column of the input file is not text based.")
 
@@ -81,9 +102,9 @@ def clean_input_data(input_data_df):
 
     # Leave out curly braces and | sign which denotes DKI and the end of
     # the headline/description in AdWords.
-    # We just want to remove the most popular punctuation to remove redundant
-    # duplicate ngrams while also want to have an insight into how less
-    # common characters influence the performance.
+    # We just want to remove the most popular punctuation to remove
+    # redundant duplicate ngrams while also want to have an insight
+    # into how less common characters influence the performance.
     stop_characters = '.,:;?!()"'
 
     input_data_df["cleaned_text"] = input_data_df["cleaned_text"].str.lower()
@@ -96,6 +117,28 @@ def clean_input_data(input_data_df):
     )
 
     input_data_df["cleaned_text"].replace({r"\s+": " "}, inplace=True, regex=True)
+
+    if lemmatize:
+        print("Lemmatizing the cleaned text...")
+        nlp = spacy.load("en")
+        # We don't want to seperate anything that wasn't specified
+        # in stop_characters
+        supress_re = re.compile(r"""[\.]""")
+        nlp.tokenizer = Tokenizer(
+            nlp.vocab,
+            infix_finditer=supress_re.finditer,
+            suffix_search=supress_re.search,
+            prefix_search=supress_re.search,
+        )
+
+        # Weird bug present in current v2.1.4 of Spacy fix
+        nlp.tokenizer.add_special_case(
+            "who's", [{spacy.attrs.ORTH: "who's", spacy.attrs.LEMMA: "who's"}]
+        )
+
+        input_data_df["cleaned_text"] = input_data_df["cleaned_text"].apply(
+            lambda s: " ".join([word.lemma_ for word in nlp(s)])
+        )
 
     return input_data_df
 
@@ -117,8 +160,10 @@ def create_ngrams(input_data_cleaned_df, start=1, end=4):
 
     for n in range(start, end + 1):
         n_gram = f"{n}-gram"
+
+        # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why
+        # we join them.
         input_data_cleaned_df[n_gram] = input_data_cleaned_df["cleaned_text"].apply(
-            # set(nltk.ngrams(...)) returns a tuple of ngrams, that's why we join them.
             lambda s: set(" ".join(gram) for gram in set(nltk.ngrams(s.split(), n)))
         )
 
@@ -224,15 +269,30 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
 ###################
 
 
-def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
-                           output_file_prefix="Analysis of "):
+def execute_ngram_analysis(
+    input_file,
+    output_folder="ngram_analysis",
+    output_file_prefix="Analysis of ",
+    lemmatize=False,
+):
     """The main function that takes in the path to the .csv with raw
     data and returns the dict containing performance for each ngram.
-    Also saves to a file.
+
+    Saves the analysis to .xlsx file.
 
     Args:
         - input_file (str): The relative path to the raw data file in a
             csv format.
+        - output_folder (str, optional): The relative path to which the
+            output .xlsx files should be written.
+            Defaults to "ngram_analysis"
+        - output_file_prefix (str, optional): The prefix that will be
+            attached to the .xlsx file containing the analysis.
+        - lemmatize (bool, optional): If set to True the cleaned data
+            will also be very conservatively lemmatized, trying to
+            normalize only words that are more or less sure with
+            omitting word that have special characters in them.
+            Defaults to False.
 
     Returns:
         - dict: A dictionary containing key value pairs of the ngram
@@ -261,6 +321,15 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
                 way (averages, ROI, etc.) as thiswill simply
                 return nonsense data due to summing them up.
     """
+    try:
+        if lemmatize:
+            spacy.load("en")
+    except OSError as e:
+        print(e)
+        print(
+            "Please make sure that you've ran `python -m spacy download en` via the console"
+        )
+        return None
 
     print(f"\nReading {input_file}")
     try:
@@ -270,7 +339,7 @@ def execute_ngram_analysis(input_file, output_folder="ngram_analysis",
         return None
 
     print("Cleaning and processing input data...")
-    input_data_cleaned_df = clean_input_data(input_data_df)
+    input_data_cleaned_df = clean_input_data(input_data_df, lemmatize=lemmatize)
     input_data_with_ngrams_df = create_ngrams(input_data_cleaned_df)
     print("File cleaning and processing done...")
 
@@ -304,23 +373,42 @@ if __name__ == "__main__":
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-file", '--input_file', type=str,
-                       help="""
-                       Relative path to the CSV file containing performance
-                       data.
-                       """)
-    group.add_argument("-folder", '--input_folder', type=str,
-                       help="""
-                       Relative path to the input folder containing
-                       only CSV's of raw performance data.
-                       """)
+    group.add_argument(
+        "-file",
+        "--input-file",
+        type=str,
+        help="""
+        Relative path to the CSV file containing performance
+        data.
+        """,
+    )
+    group.add_argument(
+        "-folder",
+        "--input-folder",
+        type=str,
+        help="""
+        Relative path to the input folder containing
+        only CSV's of raw performance data.
+        """,
+    )
+
+    parser.add_argument(
+        "--lemmatize",
+        action="store_true",
+        help="""
+        Lemmatize grams, converting each one of them to its base form.
+
+        For example rocks will become rock, and computed will become compute.
+        """,
+    )
+
     args = parser.parse_args()
 
     if args.input_folder:
         for filename in os.listdir(args.input_folder):
             file_location = os.path.join(args.input_folder, filename)
-            execute_ngram_analysis(file_location)
+            execute_ngram_analysis(file_location, lemmatize=args.lemmatize)
     elif args.input_file:
-        execute_ngram_analysis(args.input_file)
+        execute_ngram_analysis(args.input_file, lemmatize=args.lemmatize)
 
     print("\nAll done!")

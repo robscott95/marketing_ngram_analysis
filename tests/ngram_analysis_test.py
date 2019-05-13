@@ -88,6 +88,30 @@ class TestCleanInputData:
 
         pandas.util.testing.assert_series_equal(result_series, assert_series)
 
+    def test_lemmatization_support(self):
+        test_df = pd.DataFrame(
+            {
+                "description": [
+                    "Who's getting popcorn?",
+                    "Lost your card? Freeze it in seconds to keep it safe ❄️\nDefrost it if you find it again 🔥",
+                    "stress free planning for your big day customized & all inclusive packages"
+                ]
+            }
+        )
+        result_df = ngram_analysis.clean_input_data(test_df, lemmatize=True)
+        result_series = result_df["cleaned_text"]
+
+        assert_series = pd.Series(
+            [
+                "who's get popcorn",
+                "lose -PRON- card freeze -PRON- in second to keep -PRON- safe ❄️ defrost -PRON- if -PRON- find -PRON- again 🔥",
+                "stress free planning for -PRON- big day customize & all inclusive package",
+            ],
+            name="cleaned_text",
+        )
+
+        pandas.util.testing.assert_series_equal(result_series, assert_series)
+
 
 class TestCreateNgrams:
     def test_return_target_pattern(self):
@@ -340,8 +364,8 @@ class TestCalculateNgramsPerformance:
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
 
-        # Transforming inner DataFrames into dicts because we can't easily
-        # compare dicts with DF's in them.
+        # Transforming inner DataFrames into dicts because we can't
+        # easily compare dicts with DF's in them.
         return_dict = {k: v.to_dict() for k, v in return_dict.items()}
         assert_dict = {k: v.to_dict() for k, v in assert_dict.items()}
 
@@ -463,12 +487,12 @@ class TestCalculateNgramsPerformance:
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
 
-        # Transforming inner DataFrames into dicts because we can't easily
-        # compare dicts with DF's in them.
+        # Transforming inner DataFrames into dicts because we can't
+        # easily compare dicts with DF's in them.
         return_dict = {k: v.to_dict() for k, v in return_dict.items()}
 
-        # Creating this second dict assertion as one trivial bug may appear
-        # with "ad_2, ad_1" swapping to "ad_1, ad_2".
+        # Creating this second dict assertion as one trivial bug may
+        # appear with "ad_2, ad_1" swapping to "ad_1, ad_2".
         assert_dict1 = {k: v.to_dict() for k, v in assert_dict.items()}
         assert_dict2 = {k: v.to_dict() for k, v in assert_dict.items()}  # Deep copy
         assert_dict2["1-gram"]["ad_id"] = {
