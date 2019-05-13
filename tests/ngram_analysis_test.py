@@ -340,8 +340,8 @@ class TestCalculateNgramsPerformance:
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
 
-        # Transforming inner DataFrames into dicts because we can't easily
-        # compare dicts with DF's in them.
+        # Transforming inner DataFrames into dicts because we can't
+        # easily compare dicts with DF's in them.
         return_dict = {k: v.to_dict() for k, v in return_dict.items()}
         assert_dict = {k: v.to_dict() for k, v in assert_dict.items()}
 
@@ -463,12 +463,12 @@ class TestCalculateNgramsPerformance:
 
         return_dict = ngram_analysis.calculate_ngram_performance(test_input_df)
 
-        # Transforming inner DataFrames into dicts because we can't easily
-        # compare dicts with DF's in them.
+        # Transforming inner DataFrames into dicts because we can't
+        # easily compare dicts with DF's in them.
         return_dict = {k: v.to_dict() for k, v in return_dict.items()}
 
-        # Creating this second dict assertion as one trivial bug may appear
-        # with "ad_2, ad_1" swapping to "ad_1, ad_2".
+        # Creating this second dict assertion as one trivial bug may
+        # appear with "ad_2, ad_1" swapping to "ad_1, ad_2".
         assert_dict1 = {k: v.to_dict() for k, v in assert_dict.items()}
         assert_dict2 = {k: v.to_dict() for k, v in assert_dict.items()}  # Deep copy
         assert_dict2["1-gram"]["ad_id"] = {
