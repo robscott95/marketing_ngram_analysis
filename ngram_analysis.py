@@ -186,8 +186,6 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
     ]
 
     input_data_with_ngrams_df.reset_index(level=0, inplace=True)  # Key for merging
-    merging_columns = performance_columns.copy()
-    merging_columns.append("index")
 
     ngram_performance_dict = {}
 
@@ -203,7 +201,8 @@ def calculate_ngram_performance(input_data_with_ngrams_df):
         )
 
         ngram_performance_df = id_and_ngram_df.merge(
-            input_data_with_ngrams_df[merging_columns], on="index"
+            input_data_with_ngrams_df[performance_columns],
+            left_on='index', right_index=True
         ).drop(columns=["index"])
 
         ngram_performance_df = (
