@@ -88,6 +88,30 @@ class TestCleanInputData:
 
         pandas.util.testing.assert_series_equal(result_series, assert_series)
 
+    def test_lemmatization_support(self):
+        test_df = pd.DataFrame(
+            {
+                "description": [
+                    "Who's getting popcorn?",
+                    "Lost your card? Freeze it in seconds to keep it safe ❄️\nDefrost it if you find it again 🔥",
+                    "stress free planning for your big day customized & all inclusive packages"
+                ]
+            }
+        )
+        result_df = ngram_analysis.clean_input_data(test_df, lemmatize=True)
+        result_series = result_df["cleaned_text"]
+
+        assert_series = pd.Series(
+            [
+                "who's get popcorn",
+                "lose -PRON- card freeze -PRON- in second to keep -PRON- safe ❄️ defrost -PRON- if -PRON- find -PRON- again 🔥",
+                "stress free planning for -PRON- big day customize & all inclusive package",
+            ],
+            name="cleaned_text",
+        )
+
+        pandas.util.testing.assert_series_equal(result_series, assert_series)
+
 
 class TestCreateNgrams:
     def test_return_target_pattern(self):
