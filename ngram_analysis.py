@@ -103,7 +103,6 @@ def clean_input_data(input_data_df, lemmatize=False):
     )
 
     input_data_df["cleaned_text"].replace({r"\s+": " "}, inplace=True, regex=True)
-    input_data_df["safekeeping"] = input_data_df["cleaned_text"].copy(deep=True)
 
     if lemmatize:
         print("Lemmatizing the cleaned text...")
