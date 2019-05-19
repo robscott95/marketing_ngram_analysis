@@ -5,8 +5,6 @@ TODO:
 * Support multi-processing
 * Support automatic downloading of data from Facebook and Google Ads.
 
-* Mention in readme to run `python -m spacy download en` as requirement
-* Fix documentation for lemmatization feature
 * Known issues - https://github.com/explosion/spaCy/issues/3665
 """
 
