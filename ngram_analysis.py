@@ -17,11 +17,28 @@ import os
 
 from spacy.tokenizer import Tokenizer
 
+from multiprocessing import Pool
+from itertools import product
+
 pd.options.mode.chained_assignment = None
+
 
 ##############################
 # CLEANING AND PREPROCESSING #
 ##############################
+
+
+def lemmatize_series(input_series, nlp):
+    """Helper function for using apply on data to get the lemma.
+
+    Need it at top level due to how the multiprocessing module
+    handles such things.
+    """
+    output_series = input_series.apply(
+        lambda s: " ".join([word.lemma_ for word in nlp(s)])
+    )
+
+    return output_series
 
 
 def clean_input_data(input_data_df, lemmatize=False):
@@ -134,9 +151,14 @@ def clean_input_data(input_data_df, lemmatize=False):
             "who's", [{spacy.attrs.ORTH: "who's", spacy.attrs.LEMMA: "who's"}]
         )
 
-        input_data_df["cleaned_text"] = input_data_df["cleaned_text"].apply(
-            lambda s: " ".join([word.lemma_ for word in nlp(s)])
-        )
+        cpu_count = os.cpu_count()
+
+        with Pool() as pool:
+            data_split = pd.np.array_split(input_data_df["cleaned_text"], cpu_count)
+
+            input_data_df["cleaned_text"] = pd.concat(
+                pool.starmap(lemmatize_series, product(data_split, [nlp]))
+            )
 
     return input_data_df
 

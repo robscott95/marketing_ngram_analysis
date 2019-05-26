@@ -14,6 +14,7 @@ argparse = "*"
 openpyxl = "*"
 pytest = "*"
 spacy = "*"
+dask = {extras = ["dataframe"],version = "*"}
 
 [requires]
 python_version = "3.7"
