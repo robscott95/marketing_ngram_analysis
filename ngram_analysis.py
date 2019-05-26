@@ -2,7 +2,10 @@
 Script for performing a range n-gram split on passed data.
 
 TODO:
-* Support multi-processing
+* Support multi-processing < for the n-gram performance calculations
+    wait for swifter module update.
+    For now making it multi-processing friendly may actually slow it
+    down due to calling overheads. Pandas' apply is sufficient.
 * Support automatic downloading of data from Facebook and Google Ads.
 
 * Known issues - https://github.com/explosion/spaCy/issues/3665
