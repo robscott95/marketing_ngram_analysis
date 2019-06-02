@@ -53,5 +53,4 @@ script only aggregates the numerical values by summing them up. Basically you'll
 * Robert Kuśka
 
 # TODO:
-* Add multi-processing for faster lemmatization parsing.
 * Maybe some sort of automatic data download.
